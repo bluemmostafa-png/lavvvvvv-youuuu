@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08091b">
+<title>حكايتنا</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+    font-family: Arial, Tahoma, sans-serif;
+    background: #070818;
+    color: white;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+/* =========================
+   BACKGROUND
+========================= */
+
+#night {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: -5;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(88, 54, 145, .25), transparent 35%),
+        linear-gradient(180deg, #090a24 0%, #11113a 50%, #08091b 100%);
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: white;
+    opacity: .7;
+    animation: twinkle 3s infinite ease-in-out;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: .2; transform: scale(.8); }
+    50% { opacity: 1; transform: scale(1.5); }
+}
+
+.moon {
+    position: absolute;
+    top: 8%;
+    left: 9%;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #fff7d6;
+    box-shadow: 0 0 35px rgba(255,247,214,.35);
+}
+
+.moon::after {
+    content: "";
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    left: 20px;
+    top: -7px;
+    border-radius: 50%;
+    background: #0b0c27;
+}
+
+.cloud {
+    position: absolute;
+    width: 160px;
+    height: 35px;
+    border-radius: 50px;
+    background: rgba(255,255,255,.035);
+    filter: blur(2px);
+    animation: cloudMove 35s linear infinite;
+}
+
+.cloud::before,
+.cloud::after {
+    content: "";
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+}
+
+.cloud::before {
+    width: 60px;
+    height: 60px;
+    left: 25px;
+    bottom: 0;
+}
+
+.cloud::after {
+    width: 75px;
+    height: 75px;
+    right: 25px;
+    bottom: 0;
+}
+
+@keyframes cloudMove {
+    from { transform: translateX(-220px); }
+    to { transform: translateX(calc(100vw + 250px)); }
+}
+
+#particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* =========================
+   APP
+========================= */
+
+.app {
+    width: min(94%, 560px);
+    margin: auto;
+    min-height: 100vh;
+    padding: 28px 0 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.screen {
+    display: none;
+    animation: screenIn .55s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes screenIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    background: rgba(15, 15, 42, .62);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 28px;
+    padding: 25px 20px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 18px 60px rgba(0,0,0,.28);
+}
+
+.center {
+    text-align: center;
+}
+
+.title {
+    font-size: clamp(30px, 9vw, 52px);
+    margin: 0 0 12px;
+    font-weight: 800;
+    background: linear-gradient(90deg,#fff,#ffd7ee,#c9c5ff);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.subtitle {
+    color: rgba(255,255,255,.72);
+    line-height: 1.8;
+    font-size: 16px;
+}
+
+.section-title {
+    font-size: 25px;
+    margin: 0 0 10px;
+}
+
+.glass-btn {
+    width: 100%;
+    min-height: 52px;
+    margin-top: 12px;
+    padding: 13px 18px;
+    color: white;
+    border-radius: 17px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: linear-gradient(
+        135deg,
+        rgba(255,117,182,.20),
+        rgba(120,92,255,.20)
+    );
+    box-shadow: inset 0 1px rgba(255,255,255,.08);
+    transition: transform .15s ease, background .2s ease;
+}
+
+.glass-btn:active {
+    transform: scale(.97);
+    background: linear-gradient(
+        135deg,
+        rgba(255,117,182,.34),
+        rgba(120,92,255,.34)
+    );
+}
+
+.primary {
+    background: linear-gradient(
+        135deg,
+        rgba(255,99,173,.45),
+        rgba(113,89,255,.45)
+    );
+}
+
+/* =========================
+   PHASE 1
+========================= */
+
+.progress {
+    height: 7px;
+    background: rgba(255,255,255,.08);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0 22px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg,#ff72b6,#9b8cff);
+    transition: width .35s ease;
+}
+
+.question {
+    font-size: 22px;
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.answer {
+    text-align: right;
+}
+
+/* =========================
+   PHASE 2
+========================= */
+
+.game-area {
+    position: relative;
+    height: 420px;
+    margin-top: 15px;
+    overflow: hidden;
+    border-radius: 25px;
+    border: 1px solid rgba(255,255,255,.1);
+    background:
+        radial-gradient(circle at 50% 30%, rgba(107,74,170,.2), transparent 50%),
+        rgba(0,0,20,.25);
+}
+
+.score {
+    position: absolute;
+    top: 13px;
+    right: 15px;
+    z-index: 5;
+    padding: 8px 13px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.28);
+}
+
+.catch-heart {
+    position: absolute;
+    font-size: 29px;
+    user-select: none;
+    touch-action: manipulation;
+    animation: heartFloat 2.5s linear forwards;
+}
+
+@keyframes heartFloat {
+    from {
+        transform: translateY(0) scale(.8);
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    to {
+        transform: translateY(390px) scale(1.05);
+        opacity: 0;
+    }
+}
+
+.player {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 52px;
+    border-radius: 50px 50px 20px 20px;
+    background: linear-gradient(135deg,#ff77b9,#826fff);
+    box-shadow: 0 0 25px rgba(255,111,185,.3);
+    touch-action: none;
+}
+
+.player::before {
+    content: "♥";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 22px;
+}
+
+/* =========================
+   PHASE 3
+========================= */
+
+.rapunzel-scene {
+    height: 430px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 15px;
+    border-radius: 25px;
+    background:
+        linear-gradient(180deg,#090a24,#19113c 60%,#111426);
+}
+
+.tower {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 125px;
+    height: 260px;
+    background: linear-gradient(90deg,#76618b,#a989a6,#655172);
+    clip-path: polygon(12% 100%,18% 22%,38% 12%,62% 12%,82% 22%,88% 100%);
+}
+
+.tower-window {
+    position: absolute;
+    top: 75px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 55px;
+    border-radius: 50% 50% 8px 8px;
+    background: #ffd777;
+    box-shadow: 0 0 25px rgba(255,215,119,.4);
+}
+
+.hair {
+    position: absolute;
+    width: 24px;
+    height: 240px;
+    background: linear-gradient(90deg,#a66b31,#e3a04c,#9b602b);
+    border-radius: 20px;
+    top: 118px;
+    left: calc(50% + 35px);
+    transform-origin: top;
+    animation: hairSwing 3s ease-in-out infinite;
+}
+
+@keyframes hairSwing {
+    0%,100% { transform: rotate(-2deg); }
+    50% { transform: rotate(3deg); }
+}
+
+.rp-player {
+    position: absolute;
+    bottom: 28px;
+    left: 30px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #ff78b8;
+    box-shadow: 0 0 22px rgba(255,120,184,.45);
+    transition: left .25s ease;
+}
+
+.star-item {
+    position: absolute;
+    font-size: 27px;
+    animation: starPulse 1.4s infinite alternate;
+}
+
+@keyframes starPulse {
+    from { transform: scale(.8); opacity: .65; }
+    to { transform: scale(1.1); opacity: 1; }
+}
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message-box {
+    margin-top: 18px;
+    padding: 22px;
+    border-radius: 22px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    line-height: 2;
+    min-height: 150px;
+    white-space: pre-line;
+}
+
+.signature {
+    margin-top: 22px;
+    color: #ffc5e2;
+    font-size: 18px;
+}
+
+/* =========================
+   SAFE
+========================= */
+
+.safe-wrap {
+    text-align: center;
+}
+
+.safe {
+    width: 220px;
+    height: 190px;
+    margin: 20px auto;
+    border-radius: 18px;
+    background: linear-gradient(145deg,#38395a,#1d1e38);
+    border: 5px solid #6e7094;
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    position: relative;
+}
+
+.safe-door {
+    position: absolute;
+    inset: 13px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,.13);
+    background: linear-gradient(145deg,#292a49,#17182e);
+}
+
+.lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 6px solid #aeb0ce;
+    background: #242541;
+}
+
+.lock::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 25px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-10%);
+    border-radius: 5px;
+    background: #aeb0ce;
+}
+
+.date-input {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.14);
+    outline: none;
+    padding: 12px 15px;
+    text-align: center;
+    color: white;
+    background: rgba(0,0,0,.25);
+}
+
+.date-input:focus {
+    border-color: rgba(255,130,190,.7);
+}
+
+.error {
+    min-height: 24px;
+    margin-top: 10px;
+    color: #ff9fc9;
+}
+
+/* =========================
+   FINAL LETTER
+========================= */
+
+.letter {
+    background: linear-gradient(
+        145deg,
+        rgba(255,247,252,.10),
+        rgba(255,255,255,.035)
+    );
+    border: 1px solid rgba(255,255,255,.16);
+    padding: 24px;
+    border-radius: 22px;
+    line-height: 2.1;
+    min-height: 230px;
+    color: rgba(255,255,255,.92);
+}
+
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: #ffc4df;
+    animation: blink .7s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.small {
+    font-size: 13px;
+    color: rgba(255,255,255,.55);
+    margin-top: 14px;
+}
+
+@media (max-width: 360px) {
+    .app {
+        width: 92%;
+    }
+
+    .card {
+        padding: 20px 16px;
+    }
+
+    .game-area,
+    .rapunzel-scene {
+        height: 380px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="night">
+    <div class="moon"></div>
+    <div class="cloud" style="top:25%; animation-delay:-8s;"></div>
+    <div class="cloud" style="top:47%; animation-delay:-20s; transform:scale(.7);"></div>
+    <div id="stars"></div>
+    <div id="particles"></div>
+</div>
+
+<main class="app">
+
+    <!-- ================= HOME ================= -->
+
+    <section id="home" class="screen active">
+        <div class="card center">
+            <div style="font-size:58px;margin-bottom:8px;">♥</div>
+
+            <h1 class="title">حكايتنا</h1>
+
+            <p class="subtitle">
+                رحلة صغيرة عملتها مخصوص عشانك
+                <br>
+                فيها شوية لعب وشوية مفاجآت
+            </p>
+
+            <button class="glass-btn primary" id="startBtn" onclick="startJourney()">
+                ابدأ الحكاية
+            </button>
+
+            <p class="small">
+                يفضل فتح اللعبة من الموبايل
+            </p>
+        </div>
+    </section>
+
+    <!-- ================= PHASE 1 ================= -->
+
+    <section id="phase1" class="screen">
+        <div class="card">
+
+            <h2 class="section-title">اختبر معرفتك بيها</h2>
+
+            <p class="subtitle">
+                نشوف بقى إنت فاكرها قد إيه
+            </p>
+
+            <div class="progress">
+                <div class="progress-bar" id="questionProgress"></div>
+            </div>
+
+            <div id="questionText" class="question"></div>
+
+            <div id="answers"></div>
+
+        </div>
+    </section>
+
+    <!-- ================= MESSAGE 1 ================= -->
+
+    <section id="message1" class="screen">
+        <div class="card center">
+
+            <div style="font-size:45px;">♥</div>
+
+            <h2 class="section-title">خلصت أول مرحلة</h2>
+
+            <div class="message-box" id="message1Text"></div>
+
+            <button class="glass-btn primary next-btn" data-next="phase2">
+                نكمل؟
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= PHASE 2 ================= -->
+
+    <section id="phase2" class="screen">
+        <div class="card">
+
+            <h2 class="section-title">اجمع القلوب</h2>
+
+            <p class="subtitle">
+                عندك 20 ثانية تجمعي أكبر عدد ممكن
+            </p>
+
+            <div class="game-area" id="heartGame">
+
+                <div class="score">
+                    القلوب:
+                    <span id="heartScore">0</span>
+                </div>
+
+                <div class="player" id="player"></div>
+
+            </div>
+
+            <button class="glass-btn primary" id="startHeartGame">
+                ابدأ اللعبة
+            </button>
+
+            <button class="glass-btn" id="heartNext" style="display:none;">
+                كملي
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= MESSAGE 2 ================= -->
+
+    <section id="message2" class="screen">
+        <div class="card center">
+
+            <div style="font-size:45px;">♥</div>
+
+            <h2 class="section-title">المرحلة التانية خلصت</h2>
+
+            <div class="message-box" id="message2Text"></div>
+
+            <button class="glass-btn primary next-btn" data-next="phase3">
+                المرحلة اللي بعدها
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= PHASE 3 ================= -->
+
+    <section id="phase3" class="screen">
+        <div class="card">
+
+            <h2 class="section-title">مغامرة روبانزل</h2>
+
+            <p class="subtitle">
+                ساعديها توصل للنجمة وتكملي الحكاية
+            </p>
+
+            <div class="rapunzel-scene" id="rpGame">
+
+                <div class="tower">
+                    <div class="tower-window"></div>
+                </div>
+
+                <div class="hair"></div>
+
+                <div class="rp-player" id="rpPlayer"></div>
+
+                <div class="star-item" id="rpStar" style="right:35px;top:55px;">
+                    ★
+                </div>
+
+            </div>
+
+            <p class="small center">
+                استخدمي الأزرار للتحريك
+            </p>
+
+            <div style="display:flex;gap:10px;">
+                <button class="glass-btn" id="leftBtn">←</button>
+                <button class="glass-btn" id="rightBtn">→</button>
+            </div>
+
+            <button class="glass-btn primary" id="rpNext" style="display:none;">
+                كملي
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= MESSAGE 3 ================= -->
+
+    <section id="message3" class="screen">
+        <div class="card center">
+
+            <div style="font-size:45px;">★</div>
+
+            <h2 class="section-title">وصلنا لآخر مرحلة</h2>
+
+            <div class="message-box" id="message3Text"></div>
+
+            <button class="glass-btn primary next-btn" data-next="ending">
+                لسه في حاجة أخيرة
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= ENDING ================= -->
+
+    <section id="ending" class="screen">
+        <div class="card center">
+
+            <div style="font-size:45px;">✦</div>
+
+            <h2 class="section-title">لسه في حاجة أخيرة</h2>
+
+            <p class="subtitle">
+                بس المرة دي مش لعبة
+                <br>
+                في حاجة مخبيها ليكي
+            </p>
+
+            <button class="glass-btn primary next-btn" data-next="safe">
+                افتحيها
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ================= SAFE ================= -->
+
+    <section id="safe" class="screen">
+
+        <div class="card safe-wrap">
+
+            <h2 class="section-title">
+                الخزنة
+            </h2>
+
+            <p class="subtitle">
+                الخزنة دي ليكي إنتي بس
+                <br>
+                دخلي التاريخ اللي بينك وبين صاصتك
+            </p>
+
+            <div class="safe">
+                <div class="safe-door">
+                    <div class="lock"></div>
+                </div>
+            </div>
+
+            <input
+                id="secretDate"
+                class="date-input"
+                type="text"
+                inputmode="numeric"
+                placeholder="DD/MM/YYYY"
+                autocomplete="off"
+            >
+
+            <div id="safeError" class="error"></div>
+
+            <button class="glass-btn primary" id="openSafe">
+                فتح الخزنة
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- ================= FINAL LETTER ================= -->
+
+    <section id="final" class="screen">
+
+        <div class="card center">
+
+            <div style="font-size:52px;">♥</div>
+
+            <h2 class="section-title">
+                دي كانت آخر حاجة مخبيها ليكي
+            </h2>
+
+            <div class="letter">
+                <span id="typedMessage"></span>
+                <span class="cursor"></span>
+            </div>
+
+            <div class="signature" id="signature"></div>
+
+            <button
+                class="glass-btn primary"
+                id="closeLetter"
+                style="display:none;"
+            >
+                اقفلي الرسالة
+            </button>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+
+const GAME_DATA = {
+    questions: [
+        {
+            question: "إيه أكتر حاجة بتحبها؟",
+            answers: [
+                "صاصتكككككك",
+                "الخروج",
+                "النوم (لا لا اكيد مش دي)",
+                "المفاجآت"
+            ],
+            correct: 0
+        },
+        {
+            question: "إيه أكتر حاجة بتفرحها؟",
+            answers: [
+                "الكلام الحلو",
+                "الوقت الحلو اللي بنقضيه سوا",
+                "النوم طول اليوم (لا يعني اكيد مش هتختار دي)",
+                "الحنية لما تحس اني حنين عليها اوي اوي"
+            ],
+            correct: 3
+        },
+        {
+            question: "لو زعلت منك تعمل إيه؟",
+            answers: [
+                "اعمل كل دا",
+                "افضل جمبها مسيبهاش اعمل ليها حاجة تفرحها عشان متزعلش مني",
+                "اسيب كل اللي في الدنيا واجي ليها هي اخدها في حضني",
+                "افضل ماسك فيها مسيبهاش تروح في اي حتة اخليها جمبي بالعافية واصالحها"
+            ],
+            correct: 0
+        }
+    ],
+
+    message1: `دي كانت أول خطوة في الحكاية\n\nومهما كانت إجاباتك صح او غلط فأنا عارف حاجة واحدة بس\n\nإن وجودك في حياتي لوحده حاجة أنا ممتن ليها، حاجة انا ممكن اشكرك عليها وادلعك واحبك بقيت عمري واكون احن حد عليكي بسببها بس انا بحبك بحبك والله ينور عيني`,
+
+    message2: `شوفتي بقى\n\nحتي القلوب مقدرتش تهرب منك\n\nبس لسه الحكاية مخلصتش\nلسه في حاجات تانية مستنياكي`,
+
+    message3: `يمكن دي كانت مجرد لعبة\n\nبس كل مرحلة فيها كانت معمولة مخصوص عشان توصلك للنهاية\n\والنهاية لسه مستخبية`,
+
+    secretDate: "3/4/2026",
+
+    finalMessage: `يمكن وإنتي بتلعبي اللعبة دي مكنتيش عارفة هي هتوصلك لإيه\n\nبس أنا كنت عايز في الآخر توصلي لحاجة واحدة\n\nإنك شخص غالي عندي اوي والله وانك اهم حاجة في حياتي اصلا\n\nوإن كل تفصيلة صغيرة في الحكاية دي اتعملت عشان أخليكي تبتسمي\n\nوالتاريخ اللي فتح الخزنة دي\n\n3/4/2026\n\nالتاريخ هيفضل ليه مكان خاص عندي\n\nودي مش نهاية الحكاية... ♥`
+};
+
+/* --- Navigation --- */
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+document.querySelectorAll('.next-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        showScreen(btn.dataset.next);
+    });
+});
+
+/* --- Stars & Background --- */
+const starsContainer = document.getElementById('stars');
+if (starsContainer) {
+    for(let i = 0; i < 40; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.to
