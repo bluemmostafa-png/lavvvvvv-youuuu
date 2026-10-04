@@ -877,7 +877,7 @@ const GAME_DATA = {
 
     message2: `شوفتي بقى\n\nحتي القلوب مقدرتش تهرب منك\n\nبس لسه الحكاية مخلصتش\nلسه في حاجات تانية مستنياكي`,
 
-    message3: `يمكن دي كانت مجرد لعبة\n\nبس كل مرحلة فيها كانت معمولة مخصوص عشان توصلك للنهاية\n\والنهاية لسه مستخبية`,
+    message3: `يمكن دي كانت مجرد لعبة\n\nبس كل مرحلة فيها كانت معمولة مخصوص عشان توصلك للنهاية\n\nوالنهاية لسه مستخبية`,
 
     secretDate: "3/4/2026",
 
@@ -888,6 +888,8 @@ const GAME_DATA = {
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (screenId === 'phase3') requestAnimationFrame(initRapunzel);
 }
 
 document.querySelectorAll('.next-btn').forEach(btn => {
@@ -903,4 +905,335 @@ if (starsContainer) {
         const star = document.createElement('div');
         star.className = 'star';
         star.style.left = Math.random() * 100 + '%';
-        star.style.to
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+        const size = Math.random() < 0.2 ? 3 : 2;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        starsContainer.appendChild(star);
+    }
+}
+
+function burstParticles(count = 18) {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.textContent = '♥';
+        p.style.position = 'absolute';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = '-30px';
+        p.style.fontSize = (14 + Math.random() * 18) + 'px';
+        p.style.color = Math.random() < 0.5 ? '#ff8cc4' : '#b9aeff';
+        p.style.opacity = '0';
+        container.appendChild(p);
+        const duration = 3500 + Math.random() * 2500;
+        p.animate(
+            [
+                { transform: 'translateY(0)', opacity: 0 },
+                { opacity: 0.9, offset: 0.15 },
+                { transform: `translateY(-${window.innerHeight + 60}px)`, opacity: 0 }
+            ],
+            { duration, delay: Math.random() * 1200, easing: 'ease-out', fill: 'forwards' }
+        ).onfinish = () => p.remove();
+    }
+}
+
+/* --- Messages --- */
+document.getElementById('message1Text').textContent = GAME_DATA.message1;
+document.getElementById('message2Text').textContent = GAME_DATA.message2;
+document.getElementById('message3Text').textContent = GAME_DATA.message3;
+
+/* --- Home --- */
+function startJourney() {
+    currentQuestion = 0;
+    showScreen('phase1');
+    renderQuestion();
+}
+
+/* --- Phase 1: Quiz --- */
+let currentQuestion = 0;
+let answering = false;
+
+function renderQuestion() {
+    const q = GAME_DATA.questions[currentQuestion];
+    const total = GAME_DATA.questions.length;
+    document.getElementById('questionProgress').style.width = (currentQuestion / total * 100) + '%';
+    document.getElementById('questionText').textContent = q.question;
+
+    const answersEl = document.getElementById('answers');
+    answersEl.innerHTML = '';
+    answering = false;
+
+    q.answers.forEach((text, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'glass-btn answer';
+        btn.textContent = text;
+        btn.addEventListener('click', () => chooseAnswer(index, btn));
+        answersEl.appendChild(btn);
+    });
+}
+
+function chooseAnswer(index, btn) {
+    if (answering) return;
+    answering = true;
+
+    const q = GAME_DATA.questions[currentQuestion];
+    const buttons = document.querySelectorAll('#answers .glass-btn');
+    buttons[q.correct].style.background = 'linear-gradient(135deg, rgba(90,220,150,.45), rgba(90,180,255,.35))';
+    if (index !== q.correct) {
+        btn.style.background = 'linear-gradient(135deg, rgba(255,90,120,.45), rgba(180,60,120,.35))';
+    }
+
+    setTimeout(() => {
+        currentQuestion++;
+        if (currentQuestion < GAME_DATA.questions.length) {
+            renderQuestion();
+        } else {
+            document.getElementById('questionProgress').style.width = '100%';
+            showScreen('message1');
+            burstParticles();
+        }
+    }, 900);
+}
+
+/* --- Phase 2: Catch the hearts --- */
+const heartGame = document.getElementById('heartGame');
+const player = document.getElementById('player');
+const heartScoreEl = document.getElementById('heartScore');
+const startHeartBtn = document.getElementById('startHeartGame');
+const heartNextBtn = document.getElementById('heartNext');
+let heartScore = 0;
+let heartRunning = false;
+let spawnTimer = null;
+let collisionFrame = null;
+
+function movePlayerTo(clientX) {
+    const area = heartGame.getBoundingClientRect();
+    const half = player.offsetWidth / 2;
+    const x = Math.min(Math.max(clientX - area.left, half), area.width - half);
+    player.style.left = x + 'px';
+}
+
+heartGame.addEventListener('pointerdown', e => {
+    if (!heartRunning) return;
+    movePlayerTo(e.clientX);
+});
+heartGame.addEventListener('pointermove', e => {
+    if (!heartRunning) return;
+    if (e.pointerType === 'mouse' || e.buttons > 0) movePlayerTo(e.clientX);
+});
+heartGame.style.touchAction = 'none';
+
+function catchHeart(heart) {
+    if (heart.dataset.caught) return;
+    heart.dataset.caught = '1';
+    heartScore++;
+    heartScoreEl.textContent = heartScore;
+    heart.style.animation = 'none';
+    heart.animate(
+        [{ transform: getComputedStyle(heart).transform, opacity: 1 }, { transform: 'scale(1.8)', opacity: 0 }],
+        { duration: 250, fill: 'forwards' }
+    ).onfinish = () => heart.remove();
+}
+
+function spawnHeart() {
+    const heart = document.createElement('div');
+    heart.className = 'catch-heart';
+    heart.textContent = Math.random() < 0.7 ? '♥' : '❤';
+    heart.style.color = Math.random() < 0.5 ? '#ff7ab8' : '#c4b5ff';
+    heart.style.top = '10px';
+    heart.style.left = Math.random() * (heartGame.clientWidth - 35) + 'px';
+    heart.style.animationDuration = (2 + Math.random() * 1.2) + 's';
+    heart.addEventListener('pointerdown', e => {
+        e.stopPropagation();
+        catchHeart(heart);
+    });
+    heart.addEventListener('animationend', () => heart.remove());
+    heartGame.appendChild(heart);
+}
+
+function checkCollisions() {
+    const p = player.getBoundingClientRect();
+    heartGame.querySelectorAll('.catch-heart').forEach(heart => {
+        if (heart.dataset.caught) return;
+        const h = heart.getBoundingClientRect();
+        if (h.bottom >= p.top && h.top <= p.bottom && h.right >= p.left && h.left <= p.right) {
+            catchHeart(heart);
+        }
+    });
+    if (heartRunning) collisionFrame = requestAnimationFrame(checkCollisions);
+}
+
+startHeartBtn.addEventListener('click', () => {
+    heartScore = 0;
+    heartScoreEl.textContent = '0';
+    heartRunning = true;
+    startHeartBtn.style.display = 'none';
+    heartNextBtn.style.display = 'none';
+    heartGame.querySelectorAll('.catch-heart').forEach(h => h.remove());
+
+    spawnTimer = setInterval(spawnHeart, 550);
+    collisionFrame = requestAnimationFrame(checkCollisions);
+
+    setTimeout(() => {
+        heartRunning = false;
+        clearInterval(spawnTimer);
+        cancelAnimationFrame(collisionFrame);
+        heartGame.querySelectorAll('.catch-heart').forEach(h => h.remove());
+        startHeartBtn.textContent = 'العبي تاني';
+        startHeartBtn.style.display = 'block';
+        heartNextBtn.textContent = `جمعتي ${heartScore} قلب ♥ كملي`;
+        heartNextBtn.style.display = 'block';
+    }, 20000);
+});
+
+heartNextBtn.addEventListener('click', () => {
+    showScreen('message2');
+    burstParticles();
+});
+
+/* --- Phase 3: Rapunzel --- */
+const rpGame = document.getElementById('rpGame');
+const rpPlayer = document.getElementById('rpPlayer');
+const rpStar = document.getElementById('rpStar');
+const rpNextBtn = document.getElementById('rpNext');
+let rpSteps = [];
+let rpIndex = 0;
+let rpDone = false;
+
+rpPlayer.style.bottom = 'auto';
+rpPlayer.style.transition = 'left .25s ease, top .25s ease';
+
+function buildRpPath() {
+    const W = rpGame.clientWidth;
+    const H = rpGame.clientHeight;
+    const size = rpPlayer.offsetWidth || 54;
+    const groundY = H - 28 - size;
+    const startX = 30;
+    const hairX = W / 2 + 35 + 12 - size / 2;
+    const topY = 95;
+    const starX = W - 35 - size + 8;
+    const starY = 40;
+
+    const steps = [];
+    const groundCount = 4;
+    for (let i = 0; i <= groundCount; i++) {
+        steps.push({ x: startX + (hairX - startX) * i / groundCount, y: groundY });
+    }
+    const climbCount = 5;
+    for (let i = 1; i <= climbCount; i++) {
+        steps.push({ x: hairX, y: groundY + (topY - groundY) * i / climbCount });
+    }
+    const finalCount = 2;
+    for (let i = 1; i <= finalCount; i++) {
+        steps.push({ x: hairX + (starX - hairX) * i / finalCount, y: topY + (starY - topY) * i / finalCount });
+    }
+    return steps;
+}
+
+function placeRp() {
+    const step = rpSteps[rpIndex];
+    rpPlayer.style.left = step.x + 'px';
+    rpPlayer.style.top = step.y + 'px';
+
+    if (rpIndex === rpSteps.length - 1 && !rpDone) {
+        rpDone = true;
+        rpStar.style.transition = 'opacity .4s ease';
+        rpStar.style.opacity = '0';
+        rpNextBtn.style.display = 'block';
+        burstParticles(10);
+    }
+}
+
+function initRapunzel() {
+    rpSteps = buildRpPath();
+    rpIndex = Math.min(rpIndex, rpSteps.length - 1);
+    placeRp();
+}
+
+document.getElementById('rightBtn').addEventListener('click', () => {
+    if (rpIndex < rpSteps.length - 1) {
+        rpIndex++;
+        placeRp();
+    }
+});
+document.getElementById('leftBtn').addEventListener('click', () => {
+    if (rpIndex > 0) {
+        rpIndex--;
+        placeRp();
+    }
+});
+
+rpNextBtn.addEventListener('click', () => showScreen('message3'));
+
+window.addEventListener('resize', () => {
+    if (document.getElementById('phase3').classList.contains('active')) initRapunzel();
+});
+
+/* --- Safe --- */
+const secretInput = document.getElementById('secretDate');
+const safeError = document.getElementById('safeError');
+
+function parseDate(value) {
+    const parts = value.trim().split(/[\/\-.\s]+/).filter(Boolean).map(n => parseInt(n, 10));
+    return parts.length === 3 && parts.every(n => !isNaN(n)) ? parts.join('/') : null;
+}
+
+function tryOpenSafe() {
+    const entered = parseDate(secretInput.value);
+    if (entered && entered === parseDate(GAME_DATA.secretDate)) {
+        safeError.textContent = '';
+        const door = document.querySelector('.safe-door');
+        door.style.transition = 'transform .8s ease';
+        door.style.transformOrigin = 'right center';
+        door.style.transform = 'perspective(600px) rotateY(-75deg)';
+        setTimeout(() => {
+            showScreen('final');
+            startTyping();
+        }, 900);
+    } else {
+        safeError.textContent = 'التاريخ مش صح… فكري تاني ♥';
+        const safe = document.querySelector('.safe');
+        safe.animate(
+            [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }],
+            { duration: 300 }
+        );
+    }
+}
+
+document.getElementById('openSafe').addEventListener('click', tryOpenSafe);
+secretInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) tryOpenSafe();
+});
+
+/* --- Final letter --- */
+let typingStarted = false;
+
+function startTyping() {
+    if (typingStarted) return;
+    typingStarted = true;
+
+    const target = document.getElementById('typedMessage');
+    target.style.whiteSpace = 'pre-line';
+    const text = GAME_DATA.finalMessage;
+    let i = 0;
+
+    const timer = setInterval(() => {
+        target.textContent = text.slice(0, ++i);
+        if (i >= text.length) {
+            clearInterval(timer);
+            document.getElementById('signature').textContent = '— صاصتك ♥';
+            document.getElementById('closeLetter').style.display = 'block';
+            burstParticles(30);
+        }
+    }, 45);
+}
+
+document.getElementById('closeLetter').addEventListener('click', () => {
+    burstParticles(25);
+    showScreen('home');
+});
+
+</script>
+</body>
+</html>
